@@ -55,12 +55,13 @@ process BAMSTATS {
     
     script:
     """
-    module load bio/samtools/1.19
-    samtools flagstat ${bam} > tmp.${bam.baseName}.txt
+    BAM_PATH="${params.output_dir}/${bam}"
+    
+    samtools flagstat \$BAM_PATH > tmp.${bam.baseName}.txt
     TOTAL=\$(grep "in total" tmp.${bam.baseName}.txt | cut -f 1 -d " ")
     MAPPED=\$(grep "mapped (" tmp.${bam.baseName}.txt | cut -f 1 -d " " | head -n 1)
     PERCENT=\$(grep "mapped (" tmp.${bam.baseName}.txt | cut -f 2 -d "(" | cut -f 1 -d "%" | head -n 1)
-    MAPPED_q=\$(samtools view -F 4 -q 20 ${bam} | wc -l)
+    MAPPED_q=\$(samtools view -F 4 -q 20 \$BAM_PATH | wc -l)
     PERCENT_q=\$(echo "scale=2 ; \$MAPPED_q / \$TOTAL" | bc)
     echo "${bam.baseName},\$TOTAL,\$MAPPED,\$PERCENT,\$MAPPED_q,\$PERCENT_q"
     rm tmp.${bam.baseName}.txt
