@@ -10,6 +10,7 @@
 #SBATCH --partition=standard
 #SBATCH --time=4:00:00
 
+# load modules
 module load bio/bcftools/1.11
 
 OUTDIR=~/Tursiops-NC-PopulationAssignment-RAD/analysis/variants
