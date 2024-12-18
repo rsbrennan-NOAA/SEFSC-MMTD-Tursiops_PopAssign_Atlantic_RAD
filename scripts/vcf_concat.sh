@@ -14,9 +14,9 @@
 module load bio/bcftools/1.11
 
 OUTDIR=~/Tursiops-NC-PopulationAssignment-RAD/analysis/variants
-
+INDIR=~/Tursiops-NC-PopulationAssignment-RAD/analysis/variants/chromosomes
 # make list of VCF files
-ls $OUTDIR/variants_raw_*.vcf.gz > $OUTDIR/vcf_list.txt
+ls $INDIR/variants_raw_*.vcf.gz > $OUTDIR/vcf_list.txt
 
 # merge vcfs
 bcftools concat -f $OUTDIR/vcf_list.txt -O z -o $OUTDIR/variants_raw_merged.vcf.gz

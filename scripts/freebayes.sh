@@ -9,8 +9,8 @@
 #SBATCH -N 1
 #SBATCH -c 20
 #SBATCH --partition=standard
-#SBATCH --time=68:00:00
-#SBATCH --array=1-362%7 
+#SBATCH --time=30:00:00
+#SBATCH --array=1-362%8 
 
 ##################################
 # run freebayes to call variants
@@ -51,8 +51,7 @@ bash $fb_parallel \
 	-m 30 \
 	-q 20 \
     --use-best-n-alleles 4 \
-    --min-alternate-count 2 \
-	--skip-coverage 5000 | \
+    --min-alternate-count 2 | \
 bgzip -c > $OUTDIR/variants_raw_${CHROM}.vcf.gz
 
 # index the vcf files
