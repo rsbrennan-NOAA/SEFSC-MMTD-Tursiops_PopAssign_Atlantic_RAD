@@ -12,7 +12,7 @@
 
 # load modules
 module load bio/bcftools/1.11
-
+module load bio/htslib/1.19
 OUTDIR=~/Tursiops-NC-PopulationAssignment-RAD/analysis/variants
 INDIR=~/Tursiops-NC-PopulationAssignment-RAD/analysis/variants/chromosomes
 # make list of VCF files
