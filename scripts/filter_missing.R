@@ -37,17 +37,27 @@ dat[which(dat$MEAN_DEPTH > quantile(dat$MEAN_DEPTH, probs=.99)),]
 library(vcfR)
 
 vcfInput<-read.vcfR("analysis/filtered.6.vcf.gz")
+vcfInput
+
+gt_modified <- vcfInput@gt
+
+# Replace .:.:.:.:.:.:.:. with NA
+gt_modified[gt_modified == ".:.:.:.:.:.:.:."] <- NA
+
+# Create a new vcfR object with the modified data
+vcfInput_modified <- vcfInput
+vcfInput_modified@gt <- gt_modified
 
 source("scripts/HDplot.R")
 
-HDplotResults<-HDplot(vcfInput)
+HDplotResults<-HDplot(vcfInput_modified)
 
 head(HDplotResults)
 mean(HDplotResults$H)
 
 hist(HDplotResults$num_hets)
 
-HDplotResults %>% ggplot()+geom_point(aes(x=H,y=D))
+HDplotResults %>% ggplot()+geom_point(aes(x=H,y=D), alpha=0.3) + ylim(0,50)
 
 #plot H and ratio
 HDplotResults %>% ggplot()+geom_point(aes(x=H,y=ratio))
@@ -55,18 +65,19 @@ HDplotResults %>% ggplot()+geom_point(aes(x=H,y=ratio))
 
 # sites beyond the distribution are likely paralogs
 ## D- > than 10 for sure, but maybe even 5?
-## H - > than about 0.6
+## H - > than about 0.5
 
 
-sum((HDplotResults$H > 0.6))
-#123
-sum((abs(HDplotResults$D) > 6))
-#445
+sum((HDplotResults$H > 0.4))
+#130
+sum((abs(HDplotResults$D) > 5), na.rm=T)
+#3160
 
 # positions to exclude:
-datexclude <- HDplotResults[which(HDplotResults$H > 0.6 | abs(HDplotResults$D) > 6),]
+datexclude <- HDplotResults[which(HDplotResults$H > 0.4 | abs(HDplotResults$D) > 5),]
 posexclude <- datexclude[,1:2]
 nrow(posexclude)
-#498
-write.table(posexclude, file="C:/Users/Reid.Brennan/Documents/projects/spermWhaleRad/HD_exclude.txt",
-            quote=F, col.names = FALSE, row.names=FALSE)
+#3232
+write.table(posexclude, file="scripts/HD_exclude.txt",
+            quote=F, col.names = FALSE, row.names=FALSE,
+            sep="\t")
