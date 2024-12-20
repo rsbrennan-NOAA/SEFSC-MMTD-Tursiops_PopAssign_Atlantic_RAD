@@ -13,10 +13,6 @@ all <- merge(dat, dflib, by="sample")
 hist(dat$mapped_q20, breaks=30)
 
 
-table(dflib$V2)
-dflib[which(dflib$V2 == 4),]
-
-
 ggplot(all, aes(x = total_reads, fill = as.factor(lanes))) +
   geom_histogram(position = "identity", alpha = 0.9, bins = 40) +
   geom_vline(xintercept = quantile(all$total_mapped, c(0.025)), 
@@ -33,7 +29,7 @@ length(all$sample[which(all$total_reads < quantile(all$total_mapped, c(0.025)))]
 
 write.table(file="scripts/bam.list",paste0("/home/rbrennan/Tursiops-NC-PopulationAssignment-RAD/analysis/merged_bams/",
       all$sample[which(all$total_reads >= quantile(all$total_mapped, c(0.025)))],
-      ".merged.sorted.bam"), row.names=F, quote=F)
+      ".merged.sorted.bam"), row.names=F, quote=F, col.names =F)
 
 
 
