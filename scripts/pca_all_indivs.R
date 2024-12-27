@@ -629,7 +629,7 @@ d <- ggplot(dat, aes(PC1, PC3, fill=pop)) +
   xlab(paste0("PC1: ",round(eig[1], 2),"% variance")) +
   ylab(paste0("PC3: ",round(eig[3], 2),"% variance")) +
   theme_bw() +
-  ggtitle('Atlantic with unknown: PC1, PC2') +
+  ggtitle('Atlantic with unknown: PC1, PC3') +
   scale_fill_manual(values=c("darkgreen","lawngreen","orange3", "red3"))
 
 d
