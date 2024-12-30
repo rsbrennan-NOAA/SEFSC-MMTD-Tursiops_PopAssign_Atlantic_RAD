@@ -40,11 +40,11 @@ d <- ggplot(dat, aes(PC1, PC2, label=ID, color=population)) +
   xlab(paste0("PC1: ",pve$pve[1],"% variance")) +
   ylab(paste0("PC2: ",pve$pve[2],"% variance")) +
   theme_bw() +
-  ggtitle("plink: PC1, PC2")
+  ggtitle("All individuals: PC1, PC2")
 d
 
-ggsave("figures/PCA_1_2_plink.png",
-       d, w=6, h=4)
+ggsave("figures/PCA_1_2_allIndivs.png",
+       d, w=7, h=5)
 
 
 d <- ggplot(dat, aes(PC1, PC3, label=ID, color=population)) +
@@ -52,17 +52,63 @@ d <- ggplot(dat, aes(PC1, PC3, label=ID, color=population)) +
   xlab(paste0("PC1: ",pve$pve[1],"% variance")) +
   ylab(paste0("PC3: ",pve$pve[3],"% variance")) +
   theme_bw() +
-  ggtitle("plink: PC1, PC3")
+  ggtitle("All individuals: PC1, PC3")
 d
 
 ggsave("figures/PCA_1_3_plink.png",
-       d, w=6, h=4)
+       d, w=7, h=5)
+
+
+# drop brazil samples
+keep <- dat$ID[]
+
+indiv_rm <- dat$ID[grep("41Tt", dat$ID, invert=T)]
+write.table(indiv_rm, file="scripts/drop_brazil.txt", quote=F, row.names = F, col.names=F)
+
+
+
+
+
+
+##
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ####---------------------------------------------------------------------------
 # snpRelate pca
 
-pops <- read.csv("scripts/ATL_RADseq_samples.txt", sep="\t")
+#pops <- read.csv("scripts/ATL_RADseq_samples.txt", sep="\t")
 
 filename = "analysis/filtered.final_ids"
 filename.gds = paste0(filename, ".gds")
@@ -73,9 +119,9 @@ SeqArray::seqVCF2GDS(vcf.fn = filename.vcf.gz, out.fn = filename.gds, storage.op
 gdsin = SeqArray::seqOpen(filename.gds)
 
 print(paste0("The number of SAMPLES in data: ", length(c(SeqArray::seqGetData(gdsin, "sample.id")))))
-
+# [1] "The number of SAMPLES in data: 380"
 print(paste0("The number of SNPs in data: ",  length(c(SeqArray::seqGetData(gdsin, "variant.id")))))
-
+# [1] "The number of SNPs in data: 8759"
 summary(m1 <- SeqArray::seqMissing(gdsin, per.variant=TRUE))
 summary(m2 <- SeqArray::seqMissing(gdsin, per.variant=FALSE))
 
@@ -88,12 +134,16 @@ pop.ids <- sub("^(FB).*$", "\\1", pop.ids)
 #--------------------------
 ### all samples
 snpset <- SNPRelate::snpgdsLDpruning(gdsin, ld.threshold=0.2, autosome.only = F, 
-                                     start.pos="random", num.thread=1, remove.monosnp = T)  
+                                     start.pos="random", num.thread=1, 
+                                     missing.rate=NaN,
+                                     remove.monosnp = T)  
+# 4,691  markers are selected in total.
 snpset.id <- unlist(unname(snpset))
 
 pca.out = SNPRelate::snpgdsPCA(autosome.only = F, gdsin, num.thread=2, 
                                remove.monosnp = T, maf = 0.05,
                                snp.id=snpset.id) # filtering for pruned SNPs
+
 
 eig = pca.out$eigenval[!is.na(pca.out$eigenval)]
 barplot(100*eig/sum(eig), main="PCA Eigenvalues")
@@ -116,7 +166,7 @@ d <- ggplot(dat, aes(PC1, PC2, label=Population, color=Population)) +
   ggtitle('All individuals: PC1, PC2')
 d
 
-ggsave("figures/PCA_1_2.png",
+ggsave("figures/PCA_allIndivs_1_2.png",
        d, w=7, h=5)
 
 # with points
@@ -137,17 +187,20 @@ d <- ggplot(dat, aes(PC1, PC3, label=Population, color=Population)) +
   ggtitle('All individuals: PC1, PC3')
 d
 
-ggsave("figures/PCA_1_3.png",
+ggsave("figures/PCA_allIndivs_1_3.png",
        d, w=7, h=5)
 
 
 #--------------------------
 ### drop brazil samples, 41Tt
 keep <- samples[!pop.ids == "41"]
-# 361 samples, from 385 originally
+# 356 samples
 snpset <- SNPRelate::snpgdsLDpruning(gdsin, ld.threshold=0.2, autosome.only = F, 
                                      start.pos="random", num.thread=1, remove.monosnp = T, 
-                                     sample.id = keep)  
+                                     sample.id = keep,
+                                     missing.rate=NaN
+                                  
+                                     )  
 snpset.id <- unlist(unname(snpset))
 
 pca.out = SNPRelate::snpgdsPCA(autosome.only = F, gdsin, num.thread=2, 
@@ -192,7 +245,6 @@ d
 ggsave("figures/PCA_dropBrazil_1_3.png",
        d, w=7, h=5)
 
-
 #------------------------------------------------------------------------------
 # which are definitely atlantic samples? color those:
 # I think from that table that Nikki sent. 
@@ -224,20 +276,126 @@ ggsave("figures/PCA_dropBrazil_withAtlanticPts_1_2.png",
 
 
 #--------------------------------------------------------------------------------------
-### subset to just the bottom left samples- atlantic nearshore?
+#--------------------------------------------------------------------------------------
+# drop the outliers from PC3, they're from south atlantic
+# all start with 157
+# also drop 42193 and 78068 
+
+keep2 <- keep[grep("157", keep, invert=T)]
+length(keep2)
+keep3 <- keep2[grep("42193|78068", keep2, invert=T)]
+length(keep3)# 350
+
+snpset <- SNPRelate::snpgdsLDpruning(gdsin, ld.threshold=0.2, autosome.only = F, 
+                                     start.pos="random", num.thread=1, remove.monosnp = T, 
+                                     sample.id = keep3,
+                                     missing.rate=NaN
+                                     )  
+snpset.id <- unlist(unname(snpset))
+
+pca.out = SNPRelate::snpgdsPCA(autosome.only = F, gdsin, num.thread=2, 
+                               remove.monosnp = T, maf = 0.05,
+                               snp.id=snpset.id,
+                               sample.id = keep3) # filtering for pruned SNPs
+
+eig = pca.out$eigenval[!is.na(pca.out$eigenval)]
+barplot(100*eig/sum(eig), main="PCA Eigenvalues")
+
+# scale 
+eig <- 100*eig/sum(eig)
+
+dat <- as.data.frame(pca.out$eigenvect)
+
+colnames(dat) <- c("PC1", "PC2", "PC3",colnames(dat)[4:ncol(dat)] )
+dat$IDs <- pca.out$sample.id
+dat$Population <- str_extract(dat$IDs, "^[^Tt]+")
+dat$Population <- sub("^(FB).*$", "\\1", dat$Population)
+
+# with ids
+d <- ggplot(dat, aes(PC1, PC2, label=Population, color=Population)) +
+  geom_text(size =3) +
+  xlab(paste0("PC1: ",round(eig[1], 2),"% variance")) +
+  ylab(paste0("PC2: ",round(eig[2], 2),"% variance")) +
+  theme_bw() +
+  ggtitle('Drop S. Atlantic: PC1, PC2')
+d
+
+ggsave("figures/PCA_dropSAtlantic_1_2.png",
+       d, w=7, h=5)
+
+#pc1 and 3
+d <- ggplot(dat, aes(PC1, PC3, label=IDs, color=Population)) +
+  geom_text(size =3) +
+  xlab(paste0("PC1: ",round(eig[1], 2),"% variance")) +
+  ylab(paste0("PC3: ",round(eig[3], 2),"% variance")) +
+  theme_bw() +
+  ggtitle('Drop S. Atlantic: PC1, PC3')
+d
+
+ggsave("figures/PCA_dropSAtlantic_1_3.png",
+       d, w=7, h=5)
+
+#------------------------------------------------------------------------------
+# which are definitely atlantic samples? color those:
+# I think from that table that Nikki sent. 
+
+known_samps <- read.csv("scripts/ATL_RADseq_samples.txt", sep="\t")
+
+atl_samps <- known_samps$Lab_ID
+
+dat <- as.data.frame(pca.out$eigenvect)
+
+colnames(dat) <- c("PC1", "PC2", "PC3",colnames(dat)[4:ncol(dat)] )
+dat$IDs <- pca.out$sample.id
+dat$Population <- str_extract(dat$IDs, "^[^Tt]+")
+dat$Population <- sub("^(FB).*$", "\\1", dat$Population)
+dat$Population[dat$IDs %in% atl_samps] <- "Atlantic"
+
+# with ids
+d <- ggplot(dat, aes(PC1, PC2, label=Population, color=Population)) +
+  geom_point(data=subset(dat, Population == "Atlantic"),color="grey5") +
+  geom_text(data=subset(dat, Population != "Atlantic"), size=3) +
+  xlab(paste0("PC1: ",round(eig[1], 2),"% variance")) +
+  ylab(paste0("PC2: ",round(eig[2], 2),"% variance")) +
+  theme_bw() +
+  ggtitle('Black = Atlantic Samples: PC1, PC2')
+d
+
+ggsave("figures/PCA_dropSAtlantic_withAtlanticPts_1_2.png",
+       d, w=7, h=5)
+
+
+# with ids
+d <- ggplot(dat, aes(PC1, PC3, label=Population, color=Population)) +
+  geom_point(data=subset(dat, Population == "Atlantic"),color="grey5") +
+  geom_text(data=subset(dat, Population != "Atlantic"), size=3) +
+  xlab(paste0("PC1: ",round(eig[1], 2),"% variance")) +
+  ylab(paste0("PC3: ",round(eig[3], 2),"% variance")) +
+  theme_bw() +
+  ggtitle('Black = Atlantic Samples: PC1, PC3')
+d
+
+ggsave("figures/PCA_dropSAtlantic_withAtlanticPts_1_3.png",
+       d, w=7, h=5)
+
+
+#--------------------------------------------------------------------------------------
+### subset to just the atlantic nearshore?
 samples <- SeqArray::seqGetData(gdsin, "sample.id")
 pop.ids <- str_extract(samples, "^[^Tt]+")
 pop.ids <- sub("^(FB).*$", "\\1", pop.ids)
 
-sum(dat$PC1 < 0 & dat$PC2 < 0)
-#173
-keep <- dat$IDs[dat$PC1 < 0 & dat$PC2 < 0]
+sum(dat$PC1 > 0 & dat$PC2 < 0)
+#1711
+keep <- dat$IDs[dat$PC1 > 0 & dat$PC2 < 0]
 
 length(keep)
 
 snpset <- SNPRelate::snpgdsLDpruning(gdsin, ld.threshold=0.2, autosome.only = F, 
-                                     start.pos="random", num.thread=1, remove.monosnp = T, 
-                                     sample.id = keep)  
+                                     start.pos="random", num.thread=1, 
+                                     remove.monosnp = T, 
+                                     sample.id = keep,
+                                     missing.rate=NaN)  
 snpset.id <- unlist(unname(snpset))
 
 pca.out = SNPRelate::snpgdsPCA(autosome.only = F, gdsin, num.thread=2, 
@@ -264,10 +422,10 @@ d <- ggplot(dat, aes(PC1, PC2, label=Population, color=Population)) +
   xlab(paste0("PC1: ",round(eig[1], 2),"% variance")) +
   ylab(paste0("PC2: ",round(eig[2], 2),"% variance")) +
   theme_bw() +
-  ggtitle('Bottom Left: PC1, PC2')
+  ggtitle('Nearshore Atlantic: PC1, PC2')
 d
 
-ggsave("figures/PCA_bottomLeft_1_2.png",
+ggsave("figures/PCA_NearshoreAtl_1_2.png",
        d, w=7, h=5)
 
 #pc1 and 3
@@ -276,10 +434,10 @@ d <- ggplot(dat, aes(PC1, PC3, label=IDs, color=Population)) +
   xlab(paste0("PC1: ",round(eig[1], 2),"% variance")) +
   ylab(paste0("PC3: ",round(eig[3], 2),"% variance")) +
   theme_bw() +
-  ggtitle('Bottom Left: PC1, PC3')
+  ggtitle('Nearshore Atlantic: PC1, PC3')
 d
 
-ggsave("figures/PCA_bottomLeft_1_3.png",
+ggsave("figures/PCA_NearshoreAtl_1_3.png",
        d, w=7, h=5)
 
 
@@ -289,17 +447,16 @@ samples <- SeqArray::seqGetData(gdsin, "sample.id")
 pop.ids <- str_extract(samples, "^[^Tt]+")
 pop.ids <- sub("^(FB).*$", "\\1", pop.ids)
 
-sum(dat$PC1 < 0 & dat$PC2 < 0)
-#173
-keep <- dat$IDs[dat$PC1 < 0 & dat$PC2 < 0]
+#
+keep <- dat$IDs[dat$PC1 > 0 & dat$PC2 < 0]
 keep2 <- keep[grep("44",keep, invert=T)]
-
-
 length(keep2)
 
 snpset <- SNPRelate::snpgdsLDpruning(gdsin, ld.threshold=0.2, autosome.only = F, 
                                      start.pos="random", num.thread=1, remove.monosnp = T, 
-                                     sample.id = keep2)  
+                                     sample.id = keep2,
+                                     missing.rate=NaN
+                                     )  
 snpset.id <- unlist(unname(snpset))
 
 pca.out = SNPRelate::snpgdsPCA(autosome.only = F, gdsin, num.thread=2, 
@@ -326,10 +483,10 @@ d <- ggplot(dat, aes(PC1, PC2, label=Population, color=Population)) +
   xlab(paste0("PC1: ",round(eig[1], 2),"% variance")) +
   ylab(paste0("PC2: ",round(eig[2], 2),"% variance")) +
   theme_bw() +
-  ggtitle('Atl no 44: PC1, PC2')
+  ggtitle('Nearshore Atlantic, no 44: PC1, PC2')
 d
 
-ggsave("figures/PCA_atlNo44_1_2.png",
+ggsave("figures/PCA_NearshoreAtlNo44_1_2.png",
        d, w=7, h=5)
 
 #pc1 and 3
@@ -338,30 +495,11 @@ d <- ggplot(dat, aes(PC1, PC3, label=IDs, color=Population)) +
   xlab(paste0("PC1: ",round(eig[1], 2),"% variance")) +
   ylab(paste0("PC3: ",round(eig[3], 2),"% variance")) +
   theme_bw() +
-  ggtitle('Atl no 44: PC1, PC3')
+  ggtitle('Nearshore Atlantic, no 44: PC1, PC3')
 d
 
-ggsave("figures/PCA_atlNo44_1_3.png",
+ggsave("figures/PCA_NearshoreAtlNo44_1_3.png",
        d, w=7, h=5)
-
-## save the list of indivs to use with admixture:
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 #-------------------------------------------------------------------------------
@@ -375,11 +513,7 @@ filename.vcf.gz = paste0(filename, ".vcf.gz")
 # Convert VCF to GDS
 #SeqArray::seqVCF2GDS(vcf.fn = filename.vcf.gz, out.fn = filename.gds, storage.option="ZIP_RA")
 
-gdsin = SeqArray::seqOpen(filename.gds)
-
-print(paste0("The number of SAMPLES in data: ", length(c(SeqArray::seqGetData(gdsin, "sample.id")))))
-
-print(paste0("The number of SNPs in data: ",  length(c(SeqArray::seqGetData(gdsin, "variant.id")))))
+#gdsin = SeqArray::seqOpen(filename.gds)
 
 # only the atlantic samples from Nikki
 keep <- pops$indiv
@@ -388,7 +522,8 @@ length(keep)
 
 snpset <- SNPRelate::snpgdsLDpruning(gdsin, ld.threshold=0.2, autosome.only = F, 
                                      start.pos="random", num.thread=1, remove.monosnp = T, 
-                                     sample.id = keep)  
+                                     sample.id = keep,
+                                     missing.rate=NaN)  
 snpset.id <- unlist(unname(snpset))
 
 pca.out = SNPRelate::snpgdsPCA(autosome.only = F, gdsin, num.thread=2, 
@@ -416,7 +551,7 @@ d <- ggplot(dat, aes(PC1, PC2, fill=pop)) +
   xlab(paste0("PC1: ",round(eig[1], 2),"% variance")) +
   ylab(paste0("PC2: ",round(eig[2], 2),"% variance")) +
   theme_bw(base_size = 14) +
-  ggtitle('Nikki Labels Atlantic Only: PC1, PC2') +
+  ggtitle('Nikki NC Pops: PC1, PC2') +
   scale_fill_manual(values=c("darkgreen","lawngreen","orange3", "red3"))
 d
 
@@ -429,7 +564,7 @@ d <- ggplot(dat, aes(PC1, PC3, fill=pop)) +
   xlab(paste0("PC1: ",round(eig[1], 2),"% variance")) +
   ylab(paste0("PC3: ",round(eig[3], 2),"% variance")) +
   theme_bw() +
-  ggtitle('Nikki Labels Atlantic Only: PC1, PC3') +
+  ggtitle('Nikki NC Pops: PC1, PC3') +
   scale_fill_manual(values=c("darkgreen","lawngreen","orange3", "red3"))
 
 d
@@ -442,9 +577,10 @@ ggsave("figures/PCA_NikkiLabels_1_3.png",
 
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
+# just  atlantic samples, but use nikki's known assignments.
 #-------------------------------------------------------------------------------
-# just  atlantic samples
-#--------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
 
 pops <- read.csv("scripts/ATL_RADseq_samples.txt", sep="\t")
 
@@ -467,7 +603,8 @@ length(keep)
 
 snpset <- SNPRelate::snpgdsLDpruning(gdsin, ld.threshold=0.2, autosome.only = F, 
                                      start.pos="random", num.thread=1, remove.monosnp = T, 
-                                     sample.id = keep)  
+                                     sample.id = keep,
+                                     missing.rate= NaN)  
 snpset.id <- unlist(unname(snpset))
 
 pca.out = SNPRelate::snpgdsPCA(autosome.only = F, gdsin, num.thread=2, 
@@ -497,7 +634,7 @@ d <- ggplot(dat, aes(PC1, PC2, label=Population, color=Population)) +
   ggtitle('Atlantic Only: PC1, PC2')
 d
 
-ggsave("figures/PCA_AtlOnly_1_2.png",
+ggsave("figures/PCA_AtlOnlyKnown_1_2.png",
        d, w=7, h=5)
 
 #pc1 and 3
@@ -509,7 +646,7 @@ d <- ggplot(dat, aes(PC1, PC3, label=Population, color=Population)) +
   ggtitle('Atlantic Only: PC1, PC3')
 d
 
-ggsave("figures/PCA_AtlOnly_1_3.png",
+ggsave("figures/PCA_AtlOnlyKnown_1_3.png",
        d, w=7, h=5)
 
 
@@ -523,12 +660,12 @@ SnpLoad
 
 
 
-
-
-
-#--------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 ### subset to just the bottom left samples
-#--------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
 samples <- SeqArray::seqGetData(gdsin, "sample.id")
 pop.ids <- str_extract(samples, "^[^Tt]+")
 pop.ids <- sub("^(FB).*$", "\\1", pop.ids)
@@ -541,7 +678,8 @@ length(keep)
 
 snpset <- SNPRelate::snpgdsLDpruning(gdsin, ld.threshold=0.2, autosome.only = F, 
                                      start.pos="random", num.thread=1, remove.monosnp = T, 
-                                     sample.id = keep)  
+                                     sample.id = keep,
+                                     missing.rate=NaN)  
 snpset.id <- unlist(unname(snpset))
 
 pca.out = SNPRelate::snpgdsPCA(autosome.only = F, gdsin, num.thread=2, 
@@ -585,7 +723,8 @@ keep <- keep2
 
 snpset <- SNPRelate::snpgdsLDpruning(gdsin, ld.threshold=0.2, autosome.only = F, 
                                      start.pos="random", num.thread=1, remove.monosnp = T, 
-                                     sample.id = keep)  
+                                     sample.id = keep,
+                                     missing.rate=NaN)  
 snpset.id <- unlist(unname(snpset))
 
 pca.out = SNPRelate::snpgdsPCA(autosome.only = F, gdsin, num.thread=2, 

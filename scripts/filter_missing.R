@@ -2,12 +2,12 @@ library(tidyverse)
 dat <- read.csv("analysis/out.imiss", 
                 header=T, sep="\t")
 
-hist(dat$F_MISS, breaks=30)
+hist(dat$F_MISS, breaks=40)
 
-dat[which(dat$F_MISS > 0.4),]
-nrow(dat[which(dat$F_MISS > 0.4),])
+dat[which(dat$F_MISS > 0.7),]
+nrow(dat[which(dat$F_MISS > 0.7),])
 
-write.table(file="analysis/rm_missing.txt",data.frame(d=dat$INDV[which(dat$F_MISS > 0.4)]), col.names=F, 
+write.table(file="analysis/rm_missing.txt",data.frame(d=dat$INDV[which(dat$F_MISS > 0.7)]), col.names=F, 
   row.names=F, quote=F)
 
 
@@ -22,16 +22,15 @@ hist(dat$MEAN_DEPTH, breaks=40)
 hist(dat$MEAN_DEPTH, breaks=60, xlim=c(0, 500))
 
 mean(dat$MEAN_DEPTH)
-# 28.34
+# 38
 # *3 = 85.02
 
-quantile(dat$MEAN_DEPTH, probs=.99)
-#138
-sum(dat$MEAN_DEPTH > 85.02)
-dat[which(dat$MEAN_DEPTH > 85.02),]
-
-sum(dat$MEAN_DEPTH > quantile(dat$MEAN_DEPTH, probs=.99))
-dat[which(dat$MEAN_DEPTH > quantile(dat$MEAN_DEPTH, probs=.99)),]
+quantile(dat$MEAN_DEPTH, probs=.975)
+#124.8
+sum(dat$MEAN_DEPTH > 124.8)
+#282
+sum(dat$MEAN_DEPTH > quantile(dat$MEAN_DEPTH, probs=.975))
+dat[which(dat$MEAN_DEPTH > quantile(dat$MEAN_DEPTH, probs=.975)),]
 
 # HDplot
 library(vcfR)
@@ -57,7 +56,7 @@ mean(HDplotResults$H)
 
 hist(HDplotResults$num_hets)
 
-HDplotResults %>% ggplot()+geom_point(aes(x=H,y=D), alpha=0.3) + ylim(0,50)
+HDplotResults %>% ggplot()+geom_point(aes(x=H,y=abs(D)), alpha=0.1) + ylim(0,50)
 
 #plot H and ratio
 HDplotResults %>% ggplot()+geom_point(aes(x=H,y=ratio))
@@ -68,16 +67,16 @@ HDplotResults %>% ggplot()+geom_point(aes(x=H,y=ratio))
 ## H - > than about 0.5
 
 
-sum((HDplotResults$H > 0.4))
+sum((HDplotResults$H > 0.5))
 #130
 sum((abs(HDplotResults$D) > 5), na.rm=T)
-#3160
+#2348
 
 # positions to exclude:
-datexclude <- HDplotResults[which(HDplotResults$H > 0.4 | abs(HDplotResults$D) > 5),]
+datexclude <- HDplotResults[which(HDplotResults$H > 0.5 | abs(HDplotResults$D) > 5),]
 posexclude <- datexclude[,1:2]
 nrow(posexclude)
-#3232
+#2357
 write.table(posexclude, file="scripts/HD_exclude.txt",
             quote=F, col.names = FALSE, row.names=FALSE,
             sep="\t")
