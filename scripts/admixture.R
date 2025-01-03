@@ -7,14 +7,16 @@ library(patchwork)
 ### what is our most likely k?
 
 # read in CV scores:
-cvin <- read.csv("analysis/structure/cv.txt", sep=":", header=F)
+cvin <- read.csv("analysis/structure/cv_all.txt", sep=":", header=F)
 colnames(cvin) <- c("id", "cv")
 # fix the formatting to get K into numeric format
 cvin$K <- substr(cvin$id, 4, 4)
+cvin <- cvin[1:4,]
 
 # plot the results
 p <- ggplot(cvin,aes(x=K,y=cv)) +
-  geom_point(size=3)  + geom_line(group=1)
+  geom_point(size=2)  + geom_line(group=1)+
+  theme_bw(base_size = 9)
 
 p
 ggsave("figures/cv.png", p, h=3, w=3)
@@ -75,20 +77,11 @@ all_data %>%
 
 # within each population, order indivs by q val
 new_dat<- all_data[all_data$k == 2 & all_data$Q == "Q1",]
-# 1. First sort the data
 sorted_dat <- new_dat %>%
   arrange(pop, value)
-
-# 2. Get unique sample order
 sample_order <- unique(sorted_dat$sample)
-
-# 3. Then create new factor with this order
 new_dat2 <- sorted_dat %>%
   mutate(sample = factor(sample, levels = sample_order))
-
-#new_dat2 <- new_dat %>%
-# mutate(sample = fct_reorder2(sample, pop, value)) %>%
-#  arrange(pop, value)
 
 all_data$sample <- factor(all_data$sample, levels=c(new_dat2$sample))
 all_data$k <- as.numeric(all_data$k)
@@ -102,8 +95,16 @@ p2 <-
            sides="b") +
   geom_bar(stat="identity",position="stack") +
   xlab("Sample") + ylab("Ancestry") +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle = 60, hjust = 1)) +
+  theme_bw(base_size = 9) +
+  theme(
+    axis.text.x = element_text(
+      size = 5, 
+      margin = margin(t = -1)  # Reduce top margin to bring labels closer to axis
+    ),
+    legend.position = "bottom",
+    axis.title.x = element_blank()
+  ) +
+  scale_x_discrete(guide = guide_axis(angle = 90)) +
   scale_color_manual(values=c("darkgreen","lawngreen","orange3", "red3"),
                      name = "Population") +
   scale_fill_brewer(palette = "Set1", guide="none") +
@@ -111,11 +112,11 @@ p2 <-
 p2
 
 
-combined_plot <- wrap_plots(p, p2, heights = c(0.3, 1), ncol=1)
+combined_plot <- wrap_plots(p, p2, heights = c(0.15, 1), ncol=1)
 combined_plot
 
-ggsave("figures/Admixture_plot.pdf", combined_plot, width = 7, height = 8, units="in")
-ggsave("figures/Admixture_plot.png", combined_plot, width = 7, height = 8, units="in")
+ggsave("figures/Admixture_plot.pdf", combined_plot, width = 8, height = 7, units="in")
+ggsave("figures/Admixture_plot.png", combined_plot, width = 8, height = 7, units="in")
 
 
 
@@ -128,7 +129,7 @@ ggsave("figures/Admixture_plot.png", combined_plot, width = 7, height = 8, units
 ### what is our most likely k?
 
 # read in CV scores:
-cvin <- read.csv("analysis/structure/cv.txt", sep=":", header=F)
+cvin <- read.csv("analysis/structure/cv_subset.txt", sep=":", header=F)
 colnames(cvin) <- c("id", "cv")
 # fix the formatting to get K into numeric format
 cvin$K <- substr(cvin$id, 4, 4)
@@ -136,7 +137,8 @@ cvin <- cvin[1:4,]
 
 # plot the results
 p <- ggplot(cvin,aes(x=K,y=cv)) +
-  geom_point(size=3)  + geom_line(group=1)
+  geom_point(size=2)  + geom_line(group=1) +
+  theme_bw(base_size = 9)
 
 p
 ggsave("figures/cv_orangeSubset.png", p, h=3, w=3)
@@ -197,14 +199,9 @@ all_data %>%
 
 # within each population, order indivs by q val
 new_dat<- all_data[all_data$k == 2 & all_data$Q == "Q1",]
-# 1. First sort the data
 sorted_dat <- new_dat %>%
   arrange(pop, value)
-
-# 2. Get unique sample order
 sample_order <- unique(sorted_dat$sample)
-
-# 3. Then create new factor with this order
 new_dat2 <- sorted_dat %>%
   mutate(sample = factor(sample, levels = sample_order))
 
@@ -221,8 +218,16 @@ p2 <-
            sides="b") +
   geom_bar(stat="identity",position="stack") +
   xlab("Sample") + ylab("Ancestry") +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle = 60, hjust = 1)) +
+  theme_bw(base_size = 9) +
+  theme(
+    axis.text.x = element_text(
+      size = 5, 
+      margin = margin(t = -1)  # Reduce top margin to bring labels closer to axis
+    ),
+    legend.position = "bottom",
+    axis.title.x = element_blank()
+  ) +
+  scale_x_discrete(guide = guide_axis(angle = 90)) +
   scale_color_manual(values=c("darkgreen","lawngreen","orange3", "red3"),
                      name = "Population") +
   scale_fill_brewer(palette = "Set1", guide="none") +
@@ -230,11 +235,11 @@ p2 <-
 p2
 
 
-combined_plot <- wrap_plots(p, p2, heights = c(0.3, 1), ncol=1)
+combined_plot <- wrap_plots(p, p2, heights = c(0.15, 1), ncol=1)
 combined_plot
 
-ggsave("figures/Admixture_orangeSubset_plot.pdf", combined_plot, width = 7, height = 8, units="in")
-ggsave("figures/Admixture_orangeSubset_plot.png", combined_plot, width = 7, height = 8, units="in")
+ggsave("figures/Admixture_orangeSubset_plot.pdf", combined_plot, width = 8, height = 7, units="in")
+ggsave("figures/Admixture_orangeSubset_plot.png", combined_plot, width = 8, height = 7, units="in")
 
 
 
