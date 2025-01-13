@@ -17,4 +17,4 @@ module load bio/vcftools/0.1.16
 
 INDIR=~/Tursiops-NC-PopulationAssignment-RAD/analysis/variants
 
-vcftools --gzvcf ${INDIR}/filtered.6.vcf.gz --max-meanDP 138 --exclude-positions ~/Tursiops-NC-PopulationAssignment-RAD/scripts/HD_exclude.txt --recode --recode-INFO-all --stdout |  bgzip > ${INDIR}/filtered.final.vcf.gz
+vcftools --gzvcf ${INDIR}/filtered.6.vcf.gz --max-meanDP 124 --exclude-positions ~/Tursiops-NC-PopulationAssignment-RAD/scripts/HD_exclude.txt --recode --recode-INFO-all --stdout |  bgzip > ${INDIR}/filtered.final.vcf.gz

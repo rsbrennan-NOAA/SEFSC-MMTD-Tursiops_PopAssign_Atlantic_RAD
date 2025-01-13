@@ -42,4 +42,4 @@ plink --vcf ${INDIR}/variants/filtered.final_LDthin.vcf.gz \
 
 plink --bfile variants_NoLD \
 	--pca --out all_indivs_PCA --allow-extra-chr --double-id
-i
+
