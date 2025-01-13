@@ -671,7 +671,7 @@ pop.ids <- str_extract(samples, "^[^Tt]+")
 pop.ids <- sub("^(FB).*$", "\\1", pop.ids)
 
 sum(dat$PC1 < 0 & dat$PC2 < 0)
-#147
+#145
 keep <- dat$IDs[dat$PC1 < 0 & dat$PC2 < 0]
 
 length(keep)
@@ -783,8 +783,20 @@ samples <- SeqArray::seqGetData(gdsin, "sample.id")
 write.table(file= "analysis/coastalAtl_unknowns.txt", samples,
             row.names=F, quote = F, col.names = F)
 
+# and subset down the orange population
+head(dat)
+samples2 <- dat[,c("IDs", "pop")]
+samples3 <- samples2[which(samples2$pop != "Orange_84"),]
+samples4 <- samples2[is.na(samples2$pop),]
+samples5 <- rbind(samples3, samples4)
 
+allOrange <- samples2[which(samples2$pop == "Orange_84"),]
+sampOrange <- allOrange[sample(nrow(allOrange), 20, replace=FALSE),]
 
+sampout <- rbind(samples5, sampOrange)
+nrow(sampout)
+write.table(file= "analysis/coastalAtl_orangeSubset_unknowns.txt", sampout$IDs,
+            row.names=F, quote = F, col.names = F)
 
 
 
