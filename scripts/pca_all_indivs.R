@@ -33,6 +33,25 @@ ggsave("figures/pca_allindivs_var.png",
 colnames(dat) <- c("ID", "ID2", "PC1", "PC2", "PC3", "PC4", 
                    colnames(dat)[7:ncol(dat)])
 
+# read in lat lons
+
+location <- read.csv("Tursiops_RADseq_Metadata.csv")
+dat$ID <- gsub("b$|-rep$", "", dat$ID)
+
+location <- location %>%
+  tidyr::separate(Lab.ID, 
+                  into = c("Lab.ID_1", "Lab.ID_2"),
+                  sep = "=",
+                  fill = "right")  # fills with NA when there's no "="
+matches <- dat$ID %in% location$Lab.ID_1 | dat$ID %in% location$Lab.ID_2
+unmatched_ids <- dat$ID[!(dat$ID %in% location$Lab.ID_1 | dat$ID %in% location$Lab.ID_2)]
+
+
+
+sum(dat$ID %in% location$Lab.ID)
+
+nrow(dat)
+
 # plot the PCA
 dat$population <- substr(dat$ID, 1,2)
 d <- ggplot(dat, aes(PC1, PC2, label=ID, color=population)) +
@@ -279,11 +298,11 @@ ggsave("figures/PCA_dropBrazil_withAtlanticPts_1_2.png",
 #--------------------------------------------------------------------------------------
 # drop the outliers from PC3, they're from south atlantic
 # all start with 157
-# also drop 42193 and 78068 
+# also drop 42193 and 78068 # why??? I forget
 
-keep2 <- keep[grep("157", keep, invert=T)]
+keep2 <- keep[grep("157", keep, invert=T)] # these are some other species
 length(keep2)
-keep3 <- keep2[grep("42193|78068", keep2, invert=T)]
+keep3 <- keep2[grep("42193|78068", keep2, invert=T)] # from somewhere else. San diego?
 length(keep3)# 350
 
 snpset <- SNPRelate::snpgdsLDpruning(gdsin, ld.threshold=0.2, autosome.only = F, 

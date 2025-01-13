@@ -1,6 +1,6 @@
 ### alignment stats
 library(ggplot2)
-dat <- read.csv("alignment_stats.csv")
+dat <- read.csv("analysis/alignment_stats.csv")
 dat$sample <- gsub("\\.merged\\.sorted", "", dat$sample)
 dflib <- read.csv("merge_summary.csv", header=F)
 colnames(dflib) <- c("sample", "lanes", "dir")
@@ -23,6 +23,28 @@ ggplot(all, aes(x = total_reads, fill = as.factor(lanes))) +
        y = "Count",
        title = "Total # of Reads by Number of Lanes")
 
+# there are some samples originally included that are the wrong species. we knew this ahead of time. Drop them. 
+
+## 41 are from brazil
+all$sample[grep("^41",all$sample)]
+
+all2 <- all[grep("^41",all$sample, invert=T),]
+nrow(all2)
+
+# another species
+all2$sample[grep("^157",all2$sample)]
+
+all3 <- all2[grep("^157",all2$sample, invert=T),]
+nrow(all3)
+
+# drop Tadu
+all4 <- all3[grep("^Tadu",all3$sample, invert=T),]
+nrow(all4)
+
+
+
+
+
 length(all$sample[which(all$total_reads < quantile(all$total_mapped, c(0.025)))])
 # 11
 # 399 remain
@@ -32,10 +54,6 @@ write.table(file="scripts/bam.list",paste0("/home/rbrennan/Tursiops-NC-Populatio
       ".merged.sorted.bam"), row.names=F, quote=F, col.names =F)
 
 
-
-#------------------------------------------------------------------------------
-## make a map to figure out where these samples are:
-## in case they're really clustered or something
 
 
 
