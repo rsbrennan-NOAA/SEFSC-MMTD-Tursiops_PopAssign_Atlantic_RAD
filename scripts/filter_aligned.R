@@ -30,28 +30,39 @@ all$sample[grep("^41",all$sample)]
 
 all2 <- all[grep("^41",all$sample, invert=T),]
 nrow(all2)
-
+#385
 # another species
 all2$sample[grep("^157",all2$sample)]
 
 all3 <- all2[grep("^157",all2$sample, invert=T),]
 nrow(all3)
+#380
 
 # drop Tadu
 all4 <- all3[grep("^Tadu",all3$sample, invert=T),]
 nrow(all4)
 
+all4$sample[grep("42193|78068",all3$sample, invert=F)]
+#[1] "42193" "78068"
+all5 <- all4[grep("42193|78068",all4$sample, invert=T),]
 
+nrow(all5)
+# 375 
 
+all[order(all$total_reads),]
 
-
-length(all$sample[which(all$total_reads < quantile(all$total_mapped, c(0.025)))])
-# 11
-# 399 remain
+length(all$sample[which(all$total_reads < 1000000)])
+all$sample[which(all$total_reads < 1000000)]
+length(all$sample[which(all$total_reads > 1000000)])
+# 372
 
 write.table(file="scripts/bam.list",paste0("/home/rbrennan/Tursiops-NC-PopulationAssignment-RAD/analysis/merged_bams/",
-      all$sample[which(all$total_reads >= quantile(all$total_mapped, c(0.025)))],
-      ".merged.sorted.bam"), row.names=F, quote=F, col.names =F)
+      all$sample[which(all$total_reads > 1000000)],".merged.sorted.bam"), row.names=F, quote=F, col.names =F)
+
+
+
+
+
 
 
 
