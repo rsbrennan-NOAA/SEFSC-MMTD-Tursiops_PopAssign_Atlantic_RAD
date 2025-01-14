@@ -10,7 +10,7 @@
 #SBATCH -c 20
 #SBATCH --partition=standard
 #SBATCH --time=30:00:00
-#SBATCH --array=1-362%8 
+#SBATCH --array=1-362%10 
 
 ##################################
 # run freebayes to call variants
