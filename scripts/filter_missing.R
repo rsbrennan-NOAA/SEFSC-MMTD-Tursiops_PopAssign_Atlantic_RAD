@@ -19,16 +19,17 @@ dat <- read.csv("analysis/filtered.6.depth.ldepth.mean",
                 header=T, sep="\t")
 
 hist(dat$MEAN_DEPTH, breaks=40)
-hist(dat$MEAN_DEPTH, breaks=60, xlim=c(0, 500))
+hist(dat$MEAN_DEPTH, breaks=80, xlim=c(0, 500))
 
 mean(dat$MEAN_DEPTH)
-# 38
-# *3 = 85.02
+# 46
+mean(dat$MEAN_DEPTH)*3
+# *3 = 139
 
 quantile(dat$MEAN_DEPTH, probs=.975)
-#124.8
-sum(dat$MEAN_DEPTH > 124.8)
-#282
+#136.8
+sum(dat$MEAN_DEPTH > 136.8)
+#227
 sum(dat$MEAN_DEPTH > quantile(dat$MEAN_DEPTH, probs=.975))
 dat[which(dat$MEAN_DEPTH > quantile(dat$MEAN_DEPTH, probs=.975)),]
 
@@ -68,15 +69,15 @@ HDplotResults %>% ggplot()+geom_point(aes(x=H,y=ratio))
 
 
 sum((HDplotResults$H > 0.5))
-#130
-sum((abs(HDplotResults$D) > 5), na.rm=T)
-#2348
+#33
+sum((abs(HDplotResults$D) > 6), na.rm=T)
+#1543
 
 # positions to exclude:
-datexclude <- HDplotResults[which(HDplotResults$H > 0.5 | abs(HDplotResults$D) > 5),]
+datexclude <- HDplotResults[which(HDplotResults$H > 0.6 | abs(HDplotResults$D) > 6),]
 posexclude <- datexclude[,1:2]
 nrow(posexclude)
-#2357
+#1550
 write.table(posexclude, file="scripts/HD_exclude.txt",
             quote=F, col.names = FALSE, row.names=FALSE,
             sep="\t")
