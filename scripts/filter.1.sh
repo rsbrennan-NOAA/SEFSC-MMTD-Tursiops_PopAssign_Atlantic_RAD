@@ -8,7 +8,7 @@
 #SBATCH -n 1
 #SBATCH --mem=16G
 #SBATCH --partition=standard
-#SBATCH --time=7:00:00
+#SBATCH --time=16:00:00
 
 source ~/.bashrc
 
@@ -35,16 +35,16 @@ echo "done with first missingness filter"
 echo "Number of variants after first missingness filter: ${NUM_VARIANTS1}"
 
 echo "running vcfallelicprimitives"
-#vcfallelicprimitives ${INDIR}/filtered.1.vcf.gz --keep-info --keep-geno | \
-#	        vcfstreamsort |  bgzip > ${INDIR}/filtered.2.vcf.gz
+vcfallelicprimitives ${INDIR}/filtered.1.vcf.gz --keep-info --keep-geno | \
+	        vcfstreamsort |  bgzip > ${INDIR}/filtered.2.vcf.gz
 
 echo "done with allelic primitive"
-#NUM_VARIANTS2=$(zcat ${INDIR}/filtered.2.vcf.gz | grep -v '^#' | wc -l)
+NUM_VARIANTS2=$(zcat ${INDIR}/filtered.2.vcf.gz | grep -v '^#' | wc -l)
 echo "Number of variants after primitives step: ${NUM_VARIANTS2}"
 
 echo "start 2nd filtering"
 vcftools --gzvcf ${INDIR}/filtered.2.vcf.gz \
-	        --mac 3 --minDP 7 --remove-indels --max-alleles 2 --min-alleles 2 --minQ 30  \
+	        --mac 3 --minDP 10 --remove-indels --max-alleles 2 --min-alleles 2 --minQ 30  \
 		--recode --recode-INFO-all --stdout | \
 		bgzip > ${INDIR}/filtered.3.vcf.gz
 
