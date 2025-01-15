@@ -6,10 +6,11 @@ hist(dat$F_MISS, breaks=40)
 
 dat[which(dat$F_MISS > 0.75),]
 nrow(dat[which(dat$F_MISS > 0.75),])
-
+# 26
 # read in metadata. remove the stranded animals
 datMeta <- read.csv("Tursiops_RADseq_Metadata.csv")
 stranded <- datMeta$Lab.ID[datMeta$Source == "stranding"]
+# 11 indivs
 
 rmindiv <- data.frame(d=c(stranded, dat$INDV[which(dat$F_MISS > 0.75)]))
 
@@ -33,9 +34,9 @@ mean(dat$MEAN_DEPTH)*3
 # *3 = 139
 
 quantile(dat$MEAN_DEPTH, probs=.975)
-#136.8
-sum(dat$MEAN_DEPTH > 136.8)
-#227
+#137
+sum(dat$MEAN_DEPTH > 137)
+#236
 sum(dat$MEAN_DEPTH > quantile(dat$MEAN_DEPTH, probs=.975))
 dat[which(dat$MEAN_DEPTH > quantile(dat$MEAN_DEPTH, probs=.975)),]
 
@@ -75,12 +76,12 @@ HDplotResults %>% ggplot()+geom_point(aes(x=H,y=ratio))
 
 
 sum((HDplotResults$H > 0.5))
-#33
+#34
 sum((abs(HDplotResults$D) > 6), na.rm=T)
-#1543
+#1568
 
 # positions to exclude:
-datexclude <- HDplotResults[which(HDplotResults$H > 0.6 | abs(HDplotResults$D) > 6),]
+datexclude <- HDplotResults[which(HDplotResults$H > 0.5 | abs(HDplotResults$D) > 6),]
 posexclude <- datexclude[,1:2]
 nrow(posexclude)
 #1550
