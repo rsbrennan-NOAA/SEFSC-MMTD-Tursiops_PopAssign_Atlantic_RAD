@@ -7,7 +7,13 @@ hist(dat$F_MISS, breaks=40)
 dat[which(dat$F_MISS > 0.75),]
 nrow(dat[which(dat$F_MISS > 0.75),])
 
-write.table(file="scripts/rm_missing.txt",data.frame(d=dat$INDV[which(dat$F_MISS > 0.75)]), col.names=F, 
+# read in metadata. remove the stranded animals
+datMeta <- read.csv("Tursiops_RADseq_Metadata.csv")
+stranded <- datMeta$Lab.ID[datMeta$Source == "stranding"]
+
+rmindiv <- data.frame(d=c(stranded, dat$INDV[which(dat$F_MISS > 0.75)]))
+
+write.table(file="scripts/rm_missing.txt",rmindiv, col.names=F, 
   row.names=F, quote=F)
 
 
