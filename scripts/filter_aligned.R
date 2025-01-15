@@ -49,15 +49,15 @@ all5 <- all4[grep("42193|78068",all4$sample, invert=T),]
 nrow(all5)
 # 375 
 
-all[order(all$total_reads),]
+all5[order(all5$total_reads),]
 
-length(all$sample[which(all$total_reads < 1000000)])
-all$sample[which(all$total_reads < 1000000)]
-length(all$sample[which(all$total_reads > 1000000)])
+length(all5$sample[which(all5$total_reads < 1000000)])
+all5$sample[which(all5$total_reads < 1000000)]
+length(all5$sample[which(all5$total_reads > 1000000)])
 # 372
 
 write.table(file="scripts/bam.list",paste0("/home/rbrennan/Tursiops-NC-PopulationAssignment-RAD/analysis/merged_bams/",
-      all$sample[which(all$total_reads > 1000000)],".merged.sorted.bam"), row.names=F, quote=F, col.names =F)
+    all5$sample[which(all5$total_reads > 1000000)],".merged.sorted.bam"), row.names=F, quote=F, col.names =F)
 
 
 

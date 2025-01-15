@@ -4,10 +4,10 @@ dat <- read.csv("analysis/out.imiss",
 
 hist(dat$F_MISS, breaks=40)
 
-dat[which(dat$F_MISS > 0.7),]
-nrow(dat[which(dat$F_MISS > 0.7),])
+dat[which(dat$F_MISS > 0.75),]
+nrow(dat[which(dat$F_MISS > 0.75),])
 
-write.table(file="analysis/rm_missing.txt",data.frame(d=dat$INDV[which(dat$F_MISS > 0.7)]), col.names=F, 
+write.table(file="scripts/rm_missing.txt",data.frame(d=dat$INDV[which(dat$F_MISS > 0.75)]), col.names=F, 
   row.names=F, quote=F)
 
 
