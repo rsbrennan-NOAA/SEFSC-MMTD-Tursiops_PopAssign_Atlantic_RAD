@@ -12,7 +12,11 @@ datMeta <- read.csv("Tursiops_RADseq_Metadata.csv")
 stranded <- datMeta$Lab.ID[datMeta$Source == "stranding"]
 # 11 indivs
 
-rmindiv <- data.frame(d=c(stranded, dat$INDV[which(dat$F_MISS > 0.75)]))
+# and add 7Tt252-rep, which is a replicate and of worse quality than the first one. 
+
+rmindiv <- data.frame(d=unique(c(stranded, dat$INDV[which(dat$F_MISS > 0.75)], "7Tt252-rep")))
+nrow(rmindiv)
+# 35
 
 write.table(file="scripts/rm_missing.txt",rmindiv, col.names=F, 
   row.names=F, quote=F)
