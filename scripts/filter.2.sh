@@ -19,9 +19,15 @@ INDIR=~/Tursiops-NC-PopulationAssignment-RAD/analysis/variants
 
 vcftools --gzvcf ${INDIR}/filtered.3.vcf.gz --remove ~/Tursiops-NC-PopulationAssignment-RAD/scripts/rm_missing.txt  --recode --recode-INFO-all --stdout |  bgzip > ${INDIR}/filtered.4.vcf.gz 
 
-vcftools --gzvcf ${INDIR}/filtered.4.vcf.gz  --max-missing 0.7 --maf 0.05 --min-meanDP 10 --recode --recode-INFO-all  --stdout >  ${INDIR}/filtered.5.vcf
+vcftools --gzvcf ${INDIR}/filtered.4.vcf.gz  --max-missing 0.7 --maf 0.05 --min-meanDP 10 --recode --recode-INFO-all  --stdout  >  ${INDIR}/filtered.5.vcf
+
+NUM_VARIANTS1=$(cat ${INDIR}/filtered.5.vcf | grep -v '^#' | wc -l)
+echo "Number of variants after missing and maf filters: ${NUM_VARIANTS1}"
 
 vcffilter -s -f "AB > 0.25 & AB < 0.75 | AB < 0.01" ${INDIR}/filtered.5.vcf |bgzip > ${INDIR}/filtered.6.vcf.gz
+
+NUM_VARIANTS2=$(zcat ${INDIR}/filtered.6.vcf.gz | grep -v '^#' | wc -l)
+ echo "Number of variants after AB  filters: ${NUM_VARIANTS2}"
 
 #depths
 vcftools --gzvcf ${INDIR}/filtered.6.vcf.gz --site-mean-depth --out ${INDIR}/filtered.6.depth
