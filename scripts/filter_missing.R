@@ -28,7 +28,7 @@ write.table(file="scripts/rm_missing.txt",rmindiv, col.names=F,
 
 dat <- read.csv("analysis/filtered.6.depth.ldepth.mean", 
                 header=T, sep="\t")
-
+nrow(dat)
 hist(dat$MEAN_DEPTH, breaks=40)
 hist(dat$MEAN_DEPTH, breaks=80, xlim=c(0, 500))
 
@@ -40,7 +40,7 @@ mean(dat$MEAN_DEPTH)*3
 quantile(dat$MEAN_DEPTH, probs=.975)
 #137
 sum(dat$MEAN_DEPTH > 137)
-#236
+#235
 sum(dat$MEAN_DEPTH > quantile(dat$MEAN_DEPTH, probs=.975))
 dat[which(dat$MEAN_DEPTH > quantile(dat$MEAN_DEPTH, probs=.975)),]
 
@@ -75,20 +75,20 @@ HDplotResults %>% ggplot()+geom_point(aes(x=H,y=ratio))
 
 
 # sites beyond the distribution are likely paralogs
-## D- > than 10 for sure, but maybe even 5?
+## D- > than 5 or 6 for sure, but maybe even 5?
 ## H - > than about 0.5
 
 
 sum((HDplotResults$H > 0.5))
-#34
+#33
 sum((abs(HDplotResults$D) > 6), na.rm=T)
-#1568
+#1562
 
 # positions to exclude:
 datexclude <- HDplotResults[which(HDplotResults$H > 0.5 | abs(HDplotResults$D) > 6),]
 posexclude <- datexclude[,1:2]
 nrow(posexclude)
-#1550
+#1569
 write.table(posexclude, file="scripts/HD_exclude.txt",
             quote=F, col.names = FALSE, row.names=FALSE,
             sep="\t")
