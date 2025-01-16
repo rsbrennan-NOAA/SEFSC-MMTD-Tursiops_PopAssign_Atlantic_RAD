@@ -38,9 +38,9 @@ mean(dat$MEAN_DEPTH)*3
 # *3 = 139
 
 quantile(dat$MEAN_DEPTH, probs=.975)
-#137
-sum(dat$MEAN_DEPTH > 137)
-#235
+#138
+sum(dat$MEAN_DEPTH > 139)
+#237
 sum(dat$MEAN_DEPTH > quantile(dat$MEAN_DEPTH, probs=.975))
 dat[which(dat$MEAN_DEPTH > quantile(dat$MEAN_DEPTH, probs=.975)),]
 
@@ -80,15 +80,15 @@ HDplotResults %>% ggplot()+geom_point(aes(x=H,y=ratio))
 
 
 sum((HDplotResults$H > 0.5))
-#33
+#34
 sum((abs(HDplotResults$D) > 6), na.rm=T)
-#1562
+#1574
 
 # positions to exclude:
 datexclude <- HDplotResults[which(HDplotResults$H > 0.5 | abs(HDplotResults$D) > 6),]
 posexclude <- datexclude[,1:2]
 nrow(posexclude)
-#1569
+#1581
 write.table(posexclude, file="scripts/HD_exclude.txt",
             quote=F, col.names = FALSE, row.names=FALSE,
             sep="\t")
