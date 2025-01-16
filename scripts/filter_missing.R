@@ -8,9 +8,9 @@ dat[which(dat$F_MISS > 0.75),]
 nrow(dat[which(dat$F_MISS > 0.75),])
 # 26
 # read in metadata. remove the stranded animals
-datMeta <- read.csv("Tursiops_RADseq_Metadata.csv")
+datMeta <- read.csv("Tursiops_RADseq_Metadata-original.csv")
 stranded <- datMeta$Lab.ID[datMeta$Source == "stranding"]
-# 11 indivs
+length(stranded)# 11 indivs
 
 # and add 7Tt252-rep, which is a replicate and of worse quality than the first one. 
 
