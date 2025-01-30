@@ -13,7 +13,7 @@ vcf <- read.vcfR( "data/ATLOnly_filtered_LDthin_ChrCorrected.vcf",
                   verbose = FALSE )
 
 gen <- vcfR2genind(vcf)
-geno <- genind2df(my_genind)
+geno <- genind2df(gen)
 data <- matrix(NA, nrow=nInd(gen), ncol=2*nLoc(gen))
 colnames(data) <- paste0(rep(locNames(gen), each=2), c("","_2"))
 rownames(data) <- indNames(gen)
@@ -348,39 +348,7 @@ for(i in 1:nreps){
 write.table(all_results, file="analysis/structure/assignPOP_replicates.txt", 
             quote = F, row.names=F, sep="\t")
 
-d <- ggplot(all_results, aes(x = ind_id, fill = pred.pop)) +
-  geom_bar(position = "fill") +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  ylab("Proportion of Assignments") +
-  xlab("Individual ID") +
-  scale_fill_manual(values = c("LightGreen_14" = "lightgreen",
-                               "DarkGreen_17" = "darkgreen",
-                               "Red_21" = "firebrick3",
-                               "Orange_84" = "orange")) +
-  ggtitle("Consistency of assignments: 100 reps")
-d
-ggsave("figures/population_assign_Consistency.png", 
-       h=4, w=5)
 
-
-# make plot of mean probability of assignment for each indiv:
-d <- ggplot(all_results, aes(x = ind_id, y = assignment_prob, 
-                              fill = pred.pop)) +
-  geom_boxplot() +
-  theme_bw() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  ylab("Probability of Assignments") +
-  xlab("Individual ID") +
-  scale_fill_manual(values = c("LightGreen_14" = "lightgreen",
-                               "DarkGreen_17" = "darkgreen",
-                               "Red_21" = "firebrick3",
-                               "Orange_84" = "orange")) +
-  ggtitle("Probabilty of assignments: 100 reps")
-d
-
-ggsave("figures/population_assign_Probs.png", 
-       h=4, w=5)
 
 
 
