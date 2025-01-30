@@ -12,8 +12,9 @@ library(maps)
 
 
 micro_19 <- read.csv("MicroAssign_19.csv")
-micro_43 <- read.csv("MicroAssign_19.csv")
+micro_43 <- read.csv("MicroAssign_43.csv")
 all_results <- read.table("analysis/structure/assignPOP_replicates.txt", header=T)
+
 
 rad_table <- all_results %>%
   group_by(ind_id, pred.pop) %>%
