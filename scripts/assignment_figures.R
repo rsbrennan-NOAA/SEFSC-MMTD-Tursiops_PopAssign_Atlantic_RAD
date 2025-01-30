@@ -118,7 +118,7 @@ as.data.frame(high_assigns)
 
 
 #pltpt2 <- cbind(pltpt, qval)
-wide_summary <- summary_table %>%
+wide_summary <- summary_stats %>%
   pivot_wider(
     id_cols = ind_id,
     names_from = pred.pop,
@@ -126,6 +126,7 @@ wide_summary <- summary_table %>%
     values_fill = 0  # Fill NAs with 0 since no occurrence means 0 proportion
   )
 
+as.data.frame(summary_stats[summary_stats$ind_id == "2Tt485",])
 # get coords.
 
 coords <- read.csv("Tursiops_RADseq_Metadata.csv")
@@ -229,25 +230,6 @@ ggsave("figures/assignment_map_RAD.png", p, h=8, w=8)
 
 
 
-#---------
-# micros
-### 19
-
-### 43
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -261,26 +243,22 @@ keep <- c(m1$ID, unknowns$ID)
 length(keep)
 pops <- read.csv("scripts/ATL_RADseq_samples.txt", sep="\t")
 
-filename = "analysis/filtered.final_ids"
+filename = "data/ATLOnly_filtered_LDthin_ChrCorrected"
 filename.gds = paste0(filename, ".gds")
-filename.vcf.gz = paste0(filename, ".vcf.gz")
+filename.vcf.gz = paste0(filename, ".vcf")
 # Convert VCF to GDS
-#SeqArray::seqVCF2GDS(vcf.fn = filename.vcf.gz, out.fn = filename.gds, storage.option="ZIP_RA")
-
+SeqArray::seqVCF2GDS(vcf.fn = filename.vcf.gz, out.fn = filename.gds, storage.option="ZIP_RA")
+#seqClose(gdsin)
 gdsin = SeqArray::seqOpen(filename.gds)
 
 length(keep)
-
-snpset <- SNPRelate::snpgdsLDpruning(gdsin, ld.threshold=0.2, autosome.only = F, 
-                                     start.pos="random", num.thread=1, remove.monosnp = T, 
-                                     sample.id = keep,
-                                     missing.rate= NaN)  
-snpset.id <- unlist(unname(snpset))
+snpset.id <- SeqArray::seqGetData(gdsin, "variant.id")
+#snpset.id.2 <- 
 
 pca.out = SNPRelate::snpgdsPCA(autosome.only = F, gdsin, num.thread=2, 
-                               remove.monosnp = T, maf = 0.05,
-                               snp.id=snpset.id,
-                               sample.id = keep) # filtering for pruned SNPs
+                               remove.monosnp = F, maf = 0.001,
+                               sample.id = keep,
+                               snp.id=snpset.id) # keep all
 
 eig = pca.out$eigenval[!is.na(pca.out$eigenval)]
 barplot(100*eig/sum(eig), main="PCA Eigenvalues")

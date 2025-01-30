@@ -238,6 +238,10 @@ known_dat <- read.Structure("./data/ATLOnly_sub.str",
                             ploidy=2)
 unknown_dat <- read.Structure("./data/unknown.str", 
                               ploidy=2)
+length(unknown_dat$LocusName)
+length(known_dat$LocusName)
+
+sum(unknown_dat$LocusName == known_dat$LocusName)
 
 assign.X( x1=known_dat, x2=unknown_dat, 
           dir="assignPOP_results_sub/", model="svm",
@@ -266,8 +270,77 @@ ggplot(data_long, aes(x = Ind.ID, y = Proportion, fill = Population)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
   ggtitle("population assignment- subsampled Orange Pop")
 
+
 ggsave("figures/population_assign_subsetOrange.png", 
        h=4, w=5)
+
+#------------------------------
+# add pca using these individuals
+## to demonstrate how subsetting changes results:
+#data_long
+# results
+keep <- c(known_dat$SampleID,unknown_dat$SampleID)
+length(keep)
+#pops <- read.csv("scripts/ATL_RADseq_samples.txt", sep="\t")
+
+#filename = "analysis/filtered.final_ids"
+#filename.gds = paste0(filename, ".gds")
+#filename.vcf.gz = paste0(filename, ".vcf.gz")
+# Convert VCF to GDS
+#SeqArray::seqVCF2GDS(vcf.fn = filename.vcf.gz, out.fn = filename.gds, storage.option="ZIP_RA")
+
+#gdsin = SeqArray::seqOpen(filename.gds)
+
+length(keep)
+
+#snpset <- SNPRelate::snpgdsLDpruning(gdsin, ld.threshold=0.2, autosome.only = F, 
+#                                     start.pos="random", num.thread=1, remove.monosnp = T, 
+#                                     sample.id = keep,
+#                                     missing.rate= NaN)  
+snpset.id <- SeqArray::seqGetData(gdsin, "variant.id")
+#snpset.id.2 <- 
+  
+pca.out = SNPRelate::snpgdsPCA(autosome.only = F, gdsin, num.thread=2, 
+                               remove.monosnp = F, maf = 0.001,
+                               sample.id = keep,
+                               snp.id=snpset.id) # keep all
+
+eig = pca.out$eigenval[!is.na(pca.out$eigenval)]
+barplot(100*eig/sum(eig), main="PCA Eigenvalues")
+
+# scale 
+eig <- 100*eig/sum(eig)
+
+dat <- as.data.frame(pca.out$eigenvect)
+
+colnames(dat) <- c("PC1", "PC2", "PC3",colnames(dat)[4:ncol(dat)] )
+dat$IDs <- pca.out$sample.id
+known <- merge(dat, matched_pops, by.x="IDs", by.y="indiv")
+unknown_df <- merge(dat, results, by.x="IDs", by.y="Ind.ID")
+nrow(dat)
+nrow(unknown_df)
+library(scatterpie)
+
+d <- ggplot(known, aes(PC1, PC2, color=pop)) +
+  geom_point(size=4, pch=17, alpha=0.7) + 
+  #geom_point(data=unknown_df,  aes(PC1, PC2, fill=pop),size=4, pch=14, fill="grey") +
+  geom_scatterpie(data = unknown_df, 
+                  aes(x = PC1, y = PC2), 
+                  cols = c("Orange_84", "Red_21", "DarkGreen_17"), 
+                  alpha = 1, 
+                  pie_scale=3,
+                  color = "black",
+                  linewidth = 0.1) +
+  xlab(paste0("PC1: ",round(eig[1], 2),"% variance")) +
+  ylab(paste0("PC2: ",round(eig[3], 2),"% variance")) +
+  theme_bw() +
+  ggtitle('Subset Orange: PC1, PC2') +
+  scale_color_manual(values=c("darkgreen","lawngreen","orange3", "red3"))+
+  scale_fill_manual(values=c("orange3","red3","darkgreen", "lawngreen"))
+d
+
+ggsave("figures/PCA_subset_1_2.png",
+       d, w=7, h=5)
 
 
 #-------------------------------------------------------------------------------
