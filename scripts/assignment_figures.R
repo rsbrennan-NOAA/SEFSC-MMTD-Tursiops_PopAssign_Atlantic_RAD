@@ -11,7 +11,7 @@ library(scatterpie)
 library(maps)
 
 
-micro_19 <- read.csv("MicroAssign_19.csv")
+micro_19 <- read.csv("MicroAssign_19.csv", sep ="\t")
 micro_43 <- read.csv("MicroAssign_43.csv")
 all_results <- read.table("analysis/structure/assignPOP_replicates.txt", header=T)
 
@@ -31,7 +31,7 @@ rad_long <- as_tibble(data.frame(ind_id = rad_table$ind_id,
 
 
 micro_19_long <- micro_19 %>%
-            select(-lat, -lon) %>%
+            select(-lat, -lon,-date) %>%
             pivot_longer( 
                               cols = c(DarkGreen_17, Red_21, Orange_84,LightGreen_14),
                               names_to = "population",
@@ -133,7 +133,8 @@ as.data.frame(summary_stats[summary_stats$ind_id == "2Tt485",])
 coords <- read.csv("Tursiops_RADseq_Metadata.csv")
 coords2 <- data.frame(ID = coords$Lab.ID,
                       lat = coords$Lat,
-                      lon = coords$Long)
+                      lon = coords$Long,
+                      date=coords$Collection.Date)
 
 pops <- read.csv("NC_individual_ids.txt", sep="\t", col.names=c("indiv", "pop"))
 nrow(pops)
@@ -172,7 +173,7 @@ unknowns$group <- "RAD"
 head(unknowns)
 # 
 micro_19_2 <- micro_19 %>%
-  select(ind_id, lat, lon, DarkGreen_17, Red_21, Orange_84) %>%
+  select(ind_id, lat, lon,date, DarkGreen_17, Red_21, Orange_84) %>%
   rename(ID = ind_id) %>%
   mutate(pred.pop = case_when(
     DarkGreen_17 >= Red_21 & DarkGreen_17 >= Orange_84 ~ "DarkGreen_17",
@@ -190,6 +191,11 @@ micro_43_2 <- micro_43 %>%
     Red_21 >= DarkGreen_17 & Red_21 >= Orange_84 ~ "Red_21",
     Orange_84 >= DarkGreen_17 & Orange_84 >= Red_21 ~ "Orange_84"
   ))
+
+# add dates to micro_43_2
+micro_43_2 <- micro_43_2 %>%
+  left_join(select(micro_19_2, ID, date), by = "ID") %>%
+  relocate(date, .after = lon)
 
 micro_43_2$group <- "micro_43"
 
@@ -229,13 +235,104 @@ p
 
 ggsave("figures/assignment_map_RAD.png", p, h=8, w=8)
 
+# subset by dates:
+# Convert dates to Date format
+library(lubridate)
+
+pltall$date <- mdy(pltall$date)
+m1$date <- mdy(m1$date)
+
+
+warm_season_unknown <- pltall %>%
+  filter(month(date) >= 5 & month(date) <= 10)
+
+cold_season_unknown <- pltall %>%
+  filter(month(date) <= 4 | month(date) >= 11)
+
+
+head(warm_season)
+
+head(cold_season)
+
+warm_season_known <- m1 %>%
+  filter(month(date) >= 5 & month(date) <= 10)
+
+cold_season_known <- m1 %>%
+  filter(month(date) <= 4 | month(date) >= 11)
+
+
+pwarm <- 
+  ggplot() +
+  geom_sf(data = world, fill = "grey90", color = "grey70") +
+  geom_sf(data = usa, fill = NA, color = "grey70") +
+  geom_point(data =warm_season_known, aes(x=lon, y=lat, color=as.factor(pop)),
+             shape= 17, size = 1.5,
+             alpha=1) +
+  geom_scatterpie(data = warm_season, 
+                  aes(x = lon, y = lat), 
+                  cols = c("Orange_84", "Red_21", "DarkGreen_17"), 
+                  alpha = 1, 
+                  pie_scale=5,
+                  color = "black",
+                  linewidth = 0.1) +
+  scale_fill_manual(values=c("orange3", "red3", "darkgreen")) +
+  scale_color_manual(values=c("darkgreen","lawngreen","orange3", "red3")) +
+  theme_bw() +
+  theme(
+    #panel.background = element_rect(fill = "white"),
+    panel.grid = element_blank(),
+    #axis.text = element_blank(),
+    #axis.ticks = element_blank()
+    legend.position = "top",
+    legend.title=element_blank()) +
+  xlab("Longitude")+
+  ylab("Latitude") +
+  coord_sf(xlim = c(-83, -70), ylim = c(30, 41), expand = FALSE) +
+  facet_grid(group ~ pred.pop) +
+  ggtitle("warm season: May - October")
+
+p
+
+ggsave("figures/assignment_map_RAD_warm.png", pwarm, h=8, w=8)
 
 
 
+pcold <- 
+  ggplot() +
+  geom_sf(data = world, fill = "grey90", color = "grey70") +
+  geom_sf(data = usa, fill = NA, color = "grey70") +
+  geom_point(data =cold_season_known, aes(x=lon, y=lat, color=as.factor(pop)),
+             shape= 17, size = 1.5,
+             alpha=1) +
+  geom_scatterpie(data = cold_season, 
+                  aes(x = lon, y = lat), 
+                  cols = c("Orange_84", "Red_21", "DarkGreen_17"), 
+                  alpha = 1, 
+                  pie_scale=5,
+                  color = "black",
+                  linewidth = 0.1) +
+  scale_fill_manual(values=c("orange3", "red3", "darkgreen")) +
+  scale_color_manual(values=c("darkgreen","lawngreen","orange3", "red3")) +
+  theme_bw() +
+  theme(
+    #panel.background = element_rect(fill = "white"),
+    panel.grid = element_blank(),
+    #axis.text = element_blank(),
+    #axis.ticks = element_blank()
+    legend.position = "top",
+    legend.title=element_blank()) +
+  xlab("Longitude")+
+  ylab("Latitude") +
+  coord_sf(xlim = c(-83, -70), ylim = c(30, 41), expand = FALSE) +
+  facet_grid(group ~ pred.pop) +
+  ggtitle("cold season: November - April")
+
+p
+
+ggsave("figures/assignment_map_RAD_cold.png", pcold, h=8, w=8)
 
 
-
-
+nrow(cold_season)
 
 # add into PCA
 #---------------------------------------------------------------------------------
